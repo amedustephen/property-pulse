@@ -83,7 +83,7 @@ def save_cleaned_data(df, date):
     logging.info(f"✅ Saved cleaned daily data: {path_to_clean_file}")
 
     # Append to master dataset
-    master_filename = "data/redfin_hollywood_hills_master_cleaned.csv"
+    master_filename = "redfin_hollywood_hills_master_cleaned.csv"
     path_to_master_file = os.path.join(parent_dir, "data", "cleaned", master_filename)
     if os.path.exists(path_to_master_file):
         master_df = pd.read_csv(path_to_master_file)
