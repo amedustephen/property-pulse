@@ -10,7 +10,7 @@ warnings.filterwarnings('ignore')
 
 # Load the dataset
 
-# Get the directory of the script's location, assumed here to be '../notebooks' and to be on the same folder level with '../data'
+# Get the directory of the script's location, assumed here to be '../src' and to be on the same folder level with '../data'
 script_dir = os.getcwd()
 # Please note that os.getcwd() depends on the current working directory, which might not always align with the script's location  
 
