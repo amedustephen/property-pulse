@@ -239,9 +239,11 @@ def scrape():
 
         # Navigate to the parent folder
         parent_dir = os.path.abspath(os.path.join(script_dir, ".."))
+        daily_file_name = f"redfin_hollywood_hills_{today}.csv"
 
         # Construct the path to the desired relative location - ../data/raw/{daily filename}.csv
-        path_to_daily_file = os.path.join(parent_dir, "data", "raw", f"redfin_hollywood_hills_{today}.csv")
+        #path_to_daily_file = os.path.join(parent_dir, "data", "raw", f"redfin_hollywood_hills_{today}.csv")
+        path_to_daily_file = os.path.join(parent_dir, "data", "raw", daily_file_name)
         df.to_csv(path_to_daily_file,index=False)
         logging.info(f"Saved daily data: {path_to_daily_file}")
 

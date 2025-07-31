@@ -3,91 +3,121 @@ import os                          # for directory manipulation
 import pandas as pd                # for DataFrame manipulation
 import numpy as np                 # for numerical operations
 import re                          # for using regular expressions
+import logging
+from datetime import datetime
 
 # Suppress warnings
 import warnings
 warnings.filterwarnings('ignore')
 
-# Load the dataset
-
-# Get the directory of the script's location, assumed here to be '../src' and to be on the same folder level with '../data'
+# Get the directory of the script's location, assumed here to be '../src' and to be on the same folder level 
+# with '../logs'
 script_dir = os.getcwd()
-# Please note that os.getcwd() depends on the current working directory, which might not always align with the script's location  
+# Please note that os.getcwd() depends on the current working directory, which might not always align with the script's 
+# location  
 
 # Navigate to the parent folder
 parent_dir = os.path.abspath(os.path.join(script_dir, ".."))
 
-# Construct the path to the Excel file in the desired relative location
-raw_data_path = os.path.join(parent_dir, "data", "raw", "redfin_hollywood_hills.csv")
+# Setup logging
 
-# Read the Excel file into a DataFrame
-redfin_df = pd.read_csv(raw_data_path)
+# Construct the path to the desired relative location - ../logs/{filename}.log
+path_to_log_file = os.path.join(parent_dir, "logs", "cleanser.log")
 
-# Function to clean dataset
+logging.basicConfig(
+    filename=path_to_log_file,
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+# Load dataset (specific date or full historical dataset)
+def load_data(date=None):
+    if date:
+        raw_filename = f"redfin_hollywood_hills_{date}.csv"
+    else:
+        raw_filename = "redfin_hollywood_hills_master.csv"
+
+    # Construct the path to the Excel file in the desired relative location
+    raw_data_path = os.path.join(parent_dir, "data", "raw", raw_filename)
+
+    if os.path.exists(raw_data_path):
+        df = pd.read_csv(raw_data_path)
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+        logging.info(f"📊 Loaded data from {raw_data_path}")
+        return df
+    else:
+        logging.warning(f"⚠️ No data found for {date or 'historical records'}!")
+        return pd.DataFrame()
+
+# Handle missing values & clean data
 def clean_data(df):
-    
-    # Replace invalid values with NaN
-    df.replace({'—': np.nan, 'N/A': np.nan, '': np.nan}, inplace=True)
-    
-    # Drop rows with missing essential values
-    df.dropna(subset=["Price", "Beds", "Baths", "SqFt"], inplace=True)
-    
-    # Reset index
-    df.reset_index(drop=True, inplace=True)
-    
-    return df
+    logging.info("🛠 Cleaning Data...")
 
-# Function to handle rows with missing geo-location data
-def handle_missing_geo(df):
-    missing_geo = df[df['Latitude'].isna() | df['Longitude'].isna()]
-    if not missing_geo.empty:
-        df = df.dropna(subset=['Latitude', 'Longitude'])  # Drop listings without location data
-    return df
+    # Replace invalid values
+    df.replace({"—": np.nan, "N/A": np.nan, "": np.nan}, inplace=True)
 
-# Helper functions to handle format issues
+    # Convert numeric columns
+    df["Price"] = df["Price"].str.replace("[$,]", "", regex=True).astype(float)
+    df["SqFt"] = df["SqFt"].str.replace(",", "", regex=True).astype(float)
+    df["Beds"] = df["Beds"].str.extract("(\d+)").astype(float)
+    df["Baths"] = df["Baths"].str.extract("(\d+)").astype(float)
 
-def extract_numeric(value):
-    """Extracts numeric values from a string. Handles cases like '1 bed', '2 baths', 'Studio'."""
-    if isinstance(value, str):
-        match = re.search(r'\d+', value)  # Find first numeric value
-        return float(match.group()) if match else np.nan
-    return np.nan
-
-def convert_columns(df):
-    
-    # Strip whitespace from all columns
-    df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-    #df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
-    
-    # Convert Price column: Remove "$" and ",", then convert to float
-    df['Price'] = df['Price'].str.replace('[$,]', '', regex=True).replace('', np.nan).astype(float)
-    
-    # Convert SqFt column
-    df['SqFt'] = df['SqFt'].replace(['—', '', 'N/A'], np.nan)
-    df['SqFt'] = df['SqFt'].str.replace(',', '', regex=True)
-    df['SqFt'] = pd.to_numeric(df['SqFt'], errors='coerce')
-    
-    # Convert Beds & Baths
-    df['Beds'] = df['Beds'].apply(extract_numeric)
-    df['Baths'] = df['Baths'].apply(extract_numeric)
-    
     # Convert Latitude & Longitude to float
-    df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
-    df['Longitude'] = pd.to_numeric(df['Longitude'], errors='coerce')
-    
+    df["Latitude"] = pd.to_numeric(df["Latitude"], errors="coerce")
+    df["Longitude"] = pd.to_numeric(df["Longitude"], errors="coerce")
+
+    # Drop rows missing essential values
+    df.dropna(subset=["Price", "Beds", "Baths", "SqFt", "Latitude", "Longitude"], inplace=True)
+
+    logging.info(f"✅ Cleaned data: {len(df)} valid listings remaining.")
     return df
 
-# Run cleaning steps
-if __name__ == "__main__":
-    redfin_df = clean_data(redfin_df)
-    redfin_df = convert_columns(redfin_df)
-    redfin_df = handle_missing_geo(redfin_df)
-    
-    # Save the cleaned dataset
+# Save cleaned data & append to master dataset
+def save_cleaned_data(df, date):
+    cleaned_filename = f"redfin_hollywood_hills_cleaned_{date}.csv"
 
     # Construct the path to the cleaned CSV file in the desired relative location
-    path_to_file = os.path.join(parent_dir, "data", "cleaned", "redfin_hollywood_hills_cleaned.csv")
+    path_to_clean_file = os.path.join(parent_dir, "data", "cleaned", cleaned_filename)
 
-    # Save the cleaned dataset
-    redfin_df.to_csv(path_to_file,index=False)
+    df.to_csv(path_to_clean_file, index=False)
+    logging.info(f"✅ Saved cleaned daily data: {path_to_clean_file}")
+
+    # Append to master dataset
+    master_filename = "data/redfin_hollywood_hills_master_cleaned.csv"
+    path_to_master_file = os.path.join(parent_dir, "data", "cleaned", master_filename)
+    if os.path.exists(path_to_master_file):
+        master_df = pd.read_csv(path_to_master_file)
+        df = pd.concat([master_df, df]).drop_duplicates(subset=["Address", "Date"])
+
+    df.to_csv(path_to_master_file, index=False)
+    logging.info(f"✅ Updated master dataset: {path_to_master_file}")
+
+# Run data preparation
+def run_data_prep(date=None):
+    try:
+        logging.info(f"\n🚀 Running Data Prep. for {date or 'historical data'}...\n")
+        df = load_data(date)
+
+        if df.empty:
+            logging.warning("⚠️ No data available to preparation.")
+            return False
+
+        df = clean_data(df)
+
+        if date:
+            save_cleaned_data(df, date)
+
+        logging.info("✅ Data Prep. complete.\n")
+        return True
+
+    except Exception as e:
+        logging.error(f"❌ Data Prep. failed: {e}")
+        return False
+
+# Run the script automatically
+if __name__ == "__main__":
+    today = datetime.today().strftime("%Y-%m-%d")
+    run_data_prep(today)  # Run for today’s data
+    run_data_prep()       # Run historical analysis
+
 
