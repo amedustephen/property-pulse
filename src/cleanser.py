@@ -13,7 +13,7 @@ warnings.filterwarnings('ignore')
 # Setup logging
 
 # --- Always resolve relative to the project root ---
-# (script_dir = folder containing scraper.py)
+# (script_dir = folder containing cleanser.py)
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Go up one level to project root

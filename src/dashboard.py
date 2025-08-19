@@ -12,19 +12,19 @@ import glob
 import os
 import re
 
-# Get the directory of the script's location, assumed here to be '../src' and to be on the same folder level 
-# with '../logs'
-script_dir = os.getcwd()
-# Please note that os.getcwd() depends on the current working directory, which might not always align with the script's 
-# location  
+# Get the directory of the script's location, assumed here to be '../src' and to be on the same folder
 
-# Navigate to the parent folder
-parent_dir = os.path.abspath(os.path.join(script_dir, ".."))
+# --- Always resolve relative to the project root ---
+# (script_dir = folder containing dashboard.py)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Go up one level to project root
+project_root = os.path.abspath(os.path.join(script_dir, ".."))
 
 # Fetch available dates from stored CSV files
 def get_available_dates():
-    # Build the path to the data folder inside the parent directory
-    data_dir = os.path.join(parent_dir, "data", "raw")
+    # Build the path to the data folder inside the project root directory
+    data_dir = os.path.join(project_root, "data", "raw")
 
     # Use glob to find matching files
     files = glob.glob(os.path.join(data_dir, "redfin_hollywood_hills_*.csv"))
@@ -46,8 +46,8 @@ def load_data(selected_date=None):
     
     cleaned_filename = f"redfin_hollywood_hills_cleaned_{selected_date}.csv"
 
-    # Construct the path to the cleaned CSV file in the desired relative location
-    path_to_clean_file = os.path.join(parent_dir, "data", "cleaned", cleaned_filename)
+    # Construct the path to the cleaned CSV file in the desired location
+    path_to_clean_file = os.path.join(project_root, "data", "cleaned", cleaned_filename)
     if not os.path.exists(path_to_clean_file):
         st.error(f"❌ Cleaned data file not found: {path_to_clean_file}")
         return pd.DataFrame()
@@ -75,7 +75,7 @@ def load_data(selected_date=None):
 
 def load_historical_data():
     master_filename = "redfin_hollywood_hills_master_cleaned.csv"
-    path_to_master_file = os.path.join(parent_dir, "data", "cleaned", master_filename)
+    path_to_master_file = os.path.join(project_root, "data", "cleaned", master_filename)
     try:
         df = pd.read_csv(path_to_master_file)
         df["Price"] = pd.to_numeric(df["Price"], errors="coerce")
