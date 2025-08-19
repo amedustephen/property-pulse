@@ -61,14 +61,89 @@ property_pulse/
 
 ## Libraries Used
 
-- **Selenium**: Automates browser interactions to navigate through pages and handle dynamic content.
-- **BeautifulSoup (bs4)**: Parses the HTML content of each page to extract relevant car details.
-- **Pandas**: Organizes the scraped data into a structured DataFrame and saves it as a CSV file.
-- **OS, sys, time**: Provides basic system interaction, such as file operations, output flushing, and time delays.
+- **Selenium**: Automates web browsing to extract real estate data.
+- **webdriver_manager**: Manages browser drivers for Selenium.
+- **Pandas**: Stores and processes scraped data.
+- **numpy**: Handle missing values & numeric transformations.
+- **re**: For using regular expressions to extract numeric values from text fields.
+- **streamlit**: Build an interactive web-based dashboard.
+- **matplotlib**: Create plots & data visualizations.
+- **seaborn**: Enhance statistical plots.
+- **folium**: Render interactive maps for property locations.
+- **streamlit-folium**: Integrate Folium maps into Streamlit.
+- **apscheduler**: Schedule automated scraping and analysis jobs.
 
 ---
 
+## Installation
 
+1. Clone the repository
+2. Make sure you have Python installed
+3. Install Poetry (if not already installed)
+4. Install dependencies:
 
+   ```bash
+   poetry install
+   ```
+5. Make sure **ChromeDriver** is compatible with your Chrome browser version
 
-Automated real estate data pipeline that scrapes property listings, cleans the data, visualizes trends, and tracks historical prices over time
+---
+
+## Usage
+
+1. Run the Script:
+
+   Once dependencies are installed and `ChromeDriver` is set up, run the script, either manually and/or in automatic mode:
+
+   ```bash (manual mode)
+    poetry run python src/scraper.py
+    poetry run python src/cleanser.py (only after scraper.py completed successfully)
+    ```
+
+   ```bash (automatic mode)
+    poetry run python src/scheduler.py
+    ```
+   
+3. Run the Streamlit App:
+
+   ```bash 
+    poetry run streamlit run src/dashboard.py
+    ```
+
+   After running the command, Streamlit will display a URL in the terminal (usually `http://localhost:8501`). Open this URL in your browser.
+
+---
+
+## Limitations
+
+- **Dynamic changes** in source website's structure may require updates in selectors.
+- **CAPTCHAs or anti-scraping mechanisms** can block automated scraping.
+- **Legal considerations:** Ensure compliance with source website’s Terms of Service.
+
+---
+
+## Future Scope
+
+- **Proxy Support:** Integrate proxy support for enhanced scraping.
+- **Detailed UI:** Enhance the Streamlit interface with more detailed and user-friendly features.
+- **Multiple data source:** Add support for other real estate listing sites.
+- **Multithreading:** Implement multithreading to speed up the scraping experience.
+- **Database storage:** Integrate database storage options.
+- **Cloud migration:** Migrate the entire pipeline archiecture using more scalable high-performance data warehouse, ETL orchestration, and visualization tools.
+
+---
+
+## License
+
+MIT
+
+---
+
+## Contact Me
+
+For any inquiries or service requests, please reach out to me via LinkedIn or email:
+
+- **LinkedIn:** [linkedin.com/in/amedupaulstephen/](https://www.linkedin.com/in/amedupaulstephen/)
+- **Email:** amedustephen@hotmail.com
+
+I look forward to connecting with you!

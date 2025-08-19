@@ -16,20 +16,19 @@ import pandas as pd                # for DataFrame manipulation
 
 # Setup logging
 
-# Get the directory of the script's location, assumed here to be '../src' and to be on the same folder level 
-# with '../logs'
-script_dir = os.getcwd()
-# Please note that os.getcwd() depends on the current working directory, which might not always align with the script's 
-# location  
+# --- Always resolve relative to the project root ---
+# (script_dir = folder containing scraper.py)
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Navigate to the parent folder
-parent_dir = os.path.abspath(os.path.join(script_dir, ".."))
+# Go up one level to project root
+project_root = os.path.abspath(os.path.join(script_dir, ".."))
 
-# Construct the path to the desired relative location - ../logs/{filename}.log
-path_to_log_file = os.path.join(parent_dir, "logs", "scraper.log")
+# --- Setup logging ---
+log_file = os.path.join(project_root, "logs", "scraper.log")
+os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
 logging.basicConfig(
-    filename=path_to_log_file,
+    filename=log_file,
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
@@ -66,8 +65,10 @@ def init_chrome_driver(headless=True):
         chrome_options.add_argument("--headless=new")  # more stable than "--headless"
 
     # 3. Stealth flags to reduce detection
+    chrome_options.add_argument("--log-level=3")  # suppress INFO and WARNING logs
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])  # silence DevTools logs
     chrome_options.add_experimental_option('useAutomationExtension', False)
 
     # 4. Additional anti-bot evasion options
@@ -231,27 +232,24 @@ def scrape():
         df = pd.DataFrame(scraped_data)
         df["Date"] = today  # Add date for historical tracking
 
-        # Get the directory of the script's location, assumed here to be '../src' and to be on the same folder level 
-        # with '../data'
-        script_dir = os.getcwd()
-        # Please note that os.getcwd() depends on the current working directory, which might not always align with the script's 
-        # location  
-
-        # Navigate to the parent folder
-        parent_dir = os.path.abspath(os.path.join(script_dir, ".."))
+        # --- Data paths ---
         daily_file_name = f"redfin_hollywood_hills_{today}.csv"
+        path_to_daily_file = os.path.join(project_root, "data", "raw", daily_file_name)
 
-        # Construct the path to the desired relative location - ../data/raw/{daily filename}.csv
-        #path_to_daily_file = os.path.join(parent_dir, "data", "raw", f"redfin_hollywood_hills_{today}.csv")
-        path_to_daily_file = os.path.join(parent_dir, "data", "raw", daily_file_name)
-        df.to_csv(path_to_daily_file,index=False)
+        # Ensure target directory exists
+        os.makedirs(os.path.dirname(path_to_daily_file), exist_ok=True)
+
+        # Save daily file
+        df.to_csv(path_to_daily_file, index=False)
         logging.info(f"Saved daily data: {path_to_daily_file}")
 
         # Append to master dataset
-        path_to_master_file = os.path.join(parent_dir, "data", "raw", "redfin_hollywood_hills_master.csv")
+        path_to_master_file = os.path.join(project_root, "data", "raw", "redfin_hollywood_hills_master.csv")
+
         if os.path.exists(path_to_master_file):
             master_df = pd.read_csv(path_to_master_file)
             df = pd.concat([master_df, df]).drop_duplicates(subset=["Address", "Date"])
+
         df.to_csv(path_to_master_file, index=False)
         logging.info(f"Updated master dataset: {path_to_master_file}")
 
