@@ -10,22 +10,21 @@ from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
-# Get the directory of the script's location, assumed here to be '../src' and to be on the same folder level 
-# with '../logs'
-script_dir = os.getcwd()
-# Please note that os.getcwd() depends on the current working directory, which might not always align with the script's 
-# location  
-
-# Navigate to the parent folder
-parent_dir = os.path.abspath(os.path.join(script_dir, ".."))
-
 # Setup logging
 
-# Construct the path to the desired relative location - ../logs/{filename}.log
-path_to_log_file = os.path.join(parent_dir, "logs", "cleanser.log")
+# --- Always resolve relative to the project root ---
+# (script_dir = folder containing scraper.py)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Go up one level to project root
+project_root = os.path.abspath(os.path.join(script_dir, ".."))
+
+# --- Setup logging ---
+log_file = os.path.join(project_root, "logs", "cleanser.log")
+os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
 logging.basicConfig(
-    filename=path_to_log_file,
+    filename=log_file,
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
@@ -37,8 +36,8 @@ def load_data(date=None):
     else:
         raw_filename = "redfin_hollywood_hills_master.csv"
 
-    # Construct the path to the Excel file in the desired relative location
-    raw_data_path = os.path.join(parent_dir, "data", "raw", raw_filename)
+    # Construct the path to the Excel file in the desired location
+    raw_data_path = os.path.join(project_root, "data", "raw", raw_filename)
 
     if os.path.exists(raw_data_path):
         df = pd.read_csv(raw_data_path)
@@ -77,14 +76,14 @@ def save_cleaned_data(df, date):
     cleaned_filename = f"redfin_hollywood_hills_cleaned_{date}.csv"
 
     # Construct the path to the cleaned CSV file in the desired relative location
-    path_to_clean_file = os.path.join(parent_dir, "data", "cleaned", cleaned_filename)
+    path_to_clean_file = os.path.join(project_root, "data", "cleaned", cleaned_filename)
 
     df.to_csv(path_to_clean_file, index=False)
     logging.info(f"✅ Saved cleaned daily data: {path_to_clean_file}")
 
     # Append to master dataset
     master_filename = "redfin_hollywood_hills_master_cleaned.csv"
-    path_to_master_file = os.path.join(parent_dir, "data", "cleaned", master_filename)
+    path_to_master_file = os.path.join(project_root, "data", "cleaned", master_filename)
     if os.path.exists(path_to_master_file):
         master_df = pd.read_csv(path_to_master_file)
         df = pd.concat([master_df, df]).drop_duplicates(subset=["Address", "Date"])
