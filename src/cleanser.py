@@ -52,21 +52,24 @@ def load_data(date=None):
 def clean_data(df):
     logging.info("🛠 Cleaning Data...")
 
-    # Replace invalid values
+    # Replace invalid or missing values
     df.replace({"—": np.nan, "N/A": np.nan, "": np.nan}, inplace=True)
 
     # Convert numeric columns
-    df["Price"] = df["Price"].str.replace("[$,]", "", regex=True).astype(float)
-    df["SqFt"] = df["SqFt"].str.replace(",", "", regex=True).astype(float)
-    df["Beds"] = df["Beds"].str.extract("(\d+)").astype(float)
-    df["Baths"] = df["Baths"].str.extract("(\d+)").astype(float)
+    df["Price"] = df["Price"].str.replace(r"[$,]", "", regex=True).astype(float)
+    df["SqFt"] = df["SqFt"].str.replace(r",", "", regex=True).astype(float)
+    df["Beds"] = df["Beds"].str.extract(r"(\d+)").astype(float)
+    df["Baths"] = df["Baths"].str.extract(r"(\d+)").astype(float)
 
     # Convert Latitude & Longitude to float
     df["Latitude"] = pd.to_numeric(df["Latitude"], errors="coerce")
     df["Longitude"] = pd.to_numeric(df["Longitude"], errors="coerce")
 
     # Drop rows missing essential values
-    df.dropna(subset=["Price", "Beds", "Baths", "SqFt", "Latitude", "Longitude"], inplace=True)
+    df.dropna(
+        subset=["Price", "Beds", "Baths", "SqFt", "Latitude", "Longitude"],
+        inplace=True,
+    )
 
     logging.info(f"✅ Cleaned data: {len(df)} valid listings remaining.")
     return df

@@ -2,6 +2,9 @@
 
 An automated data pipeline with a simple, easy to use Streamlit dashboard to help real estate professionals access near real-time property listings, monitor market trends, and make informed, data-driven decisions
 
+Based on the tutorial “[Python Automated Real Estate Data Pipeline Project: Web Scraping](https://hackr.io/blog/how-to-create-a-python-real-estate-data-pipeline-web-scraping)” on Hackr.io.
+
+
 ---
 
 ## Features
@@ -100,10 +103,14 @@ property_pulse/
     poetry run python src/cleanser.py (only after scraper.py completed successfully)
     ```
 
+   ```bash (debug mode)
+    poetry run python src/scheduler.py --debug
+   ```
+
    ```bash (automatic mode)
     poetry run python src/scheduler.py
     ```
-   
+
 3. Run the Streamlit App:
 
    ```bash 

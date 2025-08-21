@@ -89,7 +89,7 @@ def load_historical_data():
         return pd.DataFrame()
 
 # Streamlit UI
-st.title("🏡 Hollywood Hills Real Estate Dashboard")
+st.title("🏡Real Estate Dashboard")
 st.write("Analyze real estate trends in Hollywood Hills using interactive visualizations.")
 
 # Create Tabs

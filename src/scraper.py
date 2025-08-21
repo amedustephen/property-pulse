@@ -4,7 +4,6 @@ import time                        # for time computation
 import json
 import random
 import re
-import logging
 from datetime import datetime
 
 from selenium import webdriver
@@ -13,6 +12,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd                # for DataFrame manipulation
+import sys, io, logging
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 # Setup logging
 
@@ -28,10 +31,12 @@ log_file = os.path.join(project_root, "logs", "scraper.log")
 os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
 logging.basicConfig(
-    filename=log_file,
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    handlers=[logging.StreamHandler(sys.stdout)],
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    encoding="utf-8",  # Python 3.9+ only
 )
+
 
 # Optional: List of randomized user agents
 USER_AGENTS = [
